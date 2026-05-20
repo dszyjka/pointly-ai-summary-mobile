@@ -54,6 +54,20 @@ import com.example.pointlyaisummary.ui.theme.MainPurple
 import com.example.pointlyaisummary.ui.theme.PointlyAISummaryTheme
 import com.example.pointlyaisummary.ui.theme.TextGray
 import androidx.compose.material3.Button
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 
 
 class MainActivity : ComponentActivity() {
@@ -126,14 +140,14 @@ fun MainScreen() {
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
-            when (currScreen) {
+            when (val screen = currScreen) {
                 is Screen.Home -> {
                     HomeScreen(onFilePickRequested = {
                         filePickerLauncher.launch(
                             arrayOf(
                                 "application/pdf",
                                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                "application/text/plain"
+                                "text/plain"
                             )
                         )
                     })
@@ -142,7 +156,9 @@ fun MainScreen() {
                     Text(text = "Tutaj będzie historia użytkownika.")
                 }
                 is Screen.Summarization -> {
-                    Text(text = "Tu będzie streszczanie")
+                    SummaryScreen(fileName = screen.fileName) {
+                        currScreen = Screen.Home
+                    }
                 }
                 is Screen.FileDetails -> {
                     Text(text = "File details")
@@ -235,5 +251,197 @@ fun UploadZone(onUploadClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
+    var selectedType by remember { mutableStateOf("Standard") }
+    var instructionText by remember { mutableStateOf("") }
+
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundGray)
+            .verticalScroll(scrollState)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.background(Color.White, CircleShape)
+            ) {
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+            }
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.Red.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("PDF", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(fileName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            }
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = LightPurpleBg),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Your Summary ✨", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Button(
+                        onClick = { /* Kopiowanie */ },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = MainPurple
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Copy", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Raport przedstawia wyniki finansowe firmy za rok 2023. Najważniejsze informacje:\n\n" +
+                            "• Przychody wzrosły o 18% w porównaniu do roku 2022.\n" +
+                            "• Zwiększyła się marża EBITDA, co wskazuje na poprawę rentowności operacyjnej.\n" +
+                            "• Głównym ryzykiem pozostaje inflacja oraz koszty logistyki.\n" +
+                            "• Firma planuje ekspansję na rynki europejskie w 2024 roku.",
+                    fontSize = 15.sp,
+                    color = Color.DarkGray,
+                    lineHeight = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { /* Jeszcze raz */ },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MainPurple)
+                    ) {
+                        Text("Generate Again", fontSize = 12.sp)
+                    }
+                }
+            }
+        }
+
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Response Type", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val types = listOf(
+                    "Standard",
+                    "TL;DR",
+                    "Bullet Points",
+                    "Scientific",
+                    "Technical",
+                    "Business",
+                    "Academic"
+                )
+
+                items(types) { type ->
+                    val isSelected = selectedType == type
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedType = type },
+                        label = { Text(type) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MainPurple,
+                            selectedLabelColor = Color.White,
+                            containerColor = Color.White,
+                            labelColor = TextGray
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = if (isSelected) MainPurple else Color.LightGray
+                        )
+                    )
+                }
+            }
+        }
+
+        Column {
+            Text("Your instructions (optional)", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = instructionText,
+                onValueChange = { if (it.length <= 500) instructionText = it },
+                placeholder = { Text("Add your own rules...", color = TextGray) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = MainPurple
+                )
+            )
+
+            Text(
+                text = "${instructionText.length}/500",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                textAlign = TextAlign.End,
+                color = TextGray,
+                fontSize = 12.sp
+            )
+        }
+
+        Button(
+            onClick = { /* generowanie */ },
+            colors = ButtonDefaults.buttonColors(containerColor = MainPurple),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) {
+            Text("✨ Generate Summary", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
     }
 }
