@@ -133,7 +133,7 @@ fun MainScreen() {
                             arrayOf(
                                 "application/pdf",
                                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                                "application/txt"
+                                "application/text/plain"
                             )
                         )
                     })
