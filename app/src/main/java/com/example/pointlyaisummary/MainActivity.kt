@@ -72,6 +72,7 @@ sealed class  Screen {
     data object Home : Screen()
     data class History(val userId: String) : Screen()
     data class Summarization(val fileName: String)  : Screen()
+    data class FileDetails(val fileName : String) : Screen()
 }
 
 data class NavigationItem(
@@ -142,6 +143,9 @@ fun MainScreen() {
                 }
                 is Screen.Summarization -> {
                     Text(text = "Tu będzie streszczanie")
+                }
+                is Screen.FileDetails -> {
+                    Text(text = "File details")
                 }
             }
         }
