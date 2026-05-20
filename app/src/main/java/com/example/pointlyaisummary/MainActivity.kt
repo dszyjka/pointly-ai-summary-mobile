@@ -40,11 +40,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,14 +58,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import android.content.Context
+import android.provider.OpenableColumns
+import android.database.Cursor
+import androidx.compose.ui.platform.LocalContext
 
 
 class MainActivity : ComponentActivity() {
@@ -98,13 +97,14 @@ data class NavigationItem(
 
 @Composable
 fun MainScreen() {
+    val context: Context = LocalContext.current
     var currScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
-            currScreen = Screen.Summarization(fileName = uri.toString())
+            currScreen = Screen.Summarization(fileName = getFileName(context, uri))
         }
     }
 
@@ -254,7 +254,6 @@ fun UploadZone(onUploadClick: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
     var selectedType by remember { mutableStateOf("Standard") }
@@ -444,4 +443,34 @@ fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
 
     }
+}
+
+fun getFileName(context: Context, uri: Uri) : String {
+    var result: String? = null
+
+    if (uri.scheme == "content") {
+        val cursor: Cursor?  = context.contentResolver.query(uri, null, null, null, null)
+
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+
+                if (index != -1) {
+                    result = cursor.getString(index)
+                }
+            }
+        } finally {
+            cursor?.close()
+        }
+    }
+
+    if (result == null) {
+        result = uri.path
+        val cut: Int = result?.lastIndexOf('/') ?: -1
+
+        if (cut != -1) {
+            result = result?.substring(cut + 1)
+        }
+    }
+    return result ?: "Unknown file"
 }
