@@ -10,16 +10,18 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.Streaming
 
 
 interface ApiService {
-    @GET("history/{userId}")
-    suspend fun getHistory(@Path("userId") userId: String): List<Summary>
+    @GET("history")
+    suspend fun getHistory(@Header("X-USER-ID") userId: String): List<Summary>
 
-    @GET("history/{userId}/{searchedFile}")
-    suspend fun getSearchedFiles(@Path("userId") userId: String,
-                                 @Path("searchedFile") fileName: String): List<Summary>
+    @GET("search")
+    suspend fun getSearchedFiles(@Header("X-USER-ID") userId: String,
+                                 @Query("searched_file") searchedFile: String
+    ): List<Summary>
 
     @Streaming
     @Multipart
