@@ -67,6 +67,9 @@ import android.content.Context
 import android.provider.OpenableColumns
 import android.database.Cursor
 import androidx.compose.ui.platform.LocalContext
+import android.content.SharedPreferences
+import java.util.UUID
+import android.util.Log
 
 
 class MainActivity : ComponentActivity() {
@@ -78,6 +81,11 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+
+        val uuidManager: UUIDManager = UUIDManager(this)
+        val deviceUUID: String = uuidManager.getDeviceUUID()
+
+        Log.d("APP_UUID", "uuid = $deviceUUID")
     }
 }
 
@@ -94,6 +102,26 @@ data class NavigationItem(
     val unselectedIcon: ImageVector,
     val screen: Screen
 )
+
+class UUIDManager(context: Context) {
+    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    fun getDeviceUUID(): String {
+        var uuid: String? = prefs.getString(KEY_UUID, null)
+
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString()
+            prefs.edit().putString(KEY_UUID, uuid).apply()
+        }
+
+        return uuid
+    }
+
+    companion object {
+        private const val PREFS_NAME = "AppPreferences"
+        private const val KEY_UUID = "device_uuid"
+    }
+}
 
 @Composable
 fun MainScreen() {
