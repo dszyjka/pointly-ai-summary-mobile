@@ -35,6 +35,8 @@ import android.database.Cursor
 import androidx.compose.ui.platform.LocalContext
 import android.content.SharedPreferences
 import java.util.UUID
+import java.io.File
+import java.io.FileOutputStream
 
 
 class MainActivity : ComponentActivity() {
@@ -88,7 +90,7 @@ fun MainScreen() {
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
-            currScreen = Screen.Summarization(fileName = getFileName(context, uri))
+            currScreen = Screen.Summarization(fileName = getFileName(context, uri), uri)
         }
     }
 

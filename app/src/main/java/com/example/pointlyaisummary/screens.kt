@@ -1,5 +1,6 @@
 package com.example.pointlyaisummary
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +58,7 @@ import com.example.pointlyaisummary.ui.theme.TextGray
 sealed class Screen {
     data object Home : Screen()
     data class History(val userId: String) : Screen()
-    data class Summarization(val fileName: String)  : Screen()
+    data class Summarization(val fileName: String, val fileUri: Uri)  : Screen()
     data class FileDetails(val fileName : String) : Screen()
 }
 
