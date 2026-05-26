@@ -323,6 +323,24 @@ fun SummaryScreen(fileName: String,
                     lineHeight = 22.sp
                 )
 
+                if (viewModel.isLoading) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "⏳ Generating...",
+                        color = MainPurple,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                if (viewModel.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Error: ${viewModel.errorMessage}",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
