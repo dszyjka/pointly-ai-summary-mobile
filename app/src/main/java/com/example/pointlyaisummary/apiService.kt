@@ -14,17 +14,17 @@ import retrofit2.http.Streaming
 
 
 interface ApiService {
-    @GET("history")
+    @GET("api/history")
     suspend fun getHistory(@Header("X-USER-ID") userId: String): List<Summary>
 
-    @GET("search")
+    @GET("api/search")
     suspend fun getSearchedFiles(@Header("X-USER-ID") userId: String,
                                  @Query("searched_file") searchedFile: String
     ): List<Summary>
 
     @Streaming
     @Multipart
-    @POST("summarize")
+    @POST("api/summarize")
     suspend fun  summarizeFile(
         @Header("X-USER-ID") userId: String,
         @Part file: MultipartBody.Part,

@@ -1,6 +1,10 @@
 package com.example.pointlyaisummary
 
+import android.content.Context
 import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,9 +40,12 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,6 +72,83 @@ sealed class Screen {
     data class History(val userId: String) : Screen()
     data class Summarization(val fileName: String, val fileUri: Uri)  : Screen()
     data class FileDetails(val fileName : String) : Screen()
+}
+
+@Composable
+fun MainScreen(uuid: String, viewModel: SummaryViewModel) {
+    val context = LocalContext.current
+    var currScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            currScreen = Screen.Summarization(fileName = getFileName(context, uri), fileUri = uri)
+        }
+    }
+
+    val items = listOf(
+        NavigationItem("Home", Icons.Filled.Home, Icons.Outlined.Home, Screen.Home),
+        NavigationItem("History", Icons.Filled.Menu, Icons.Outlined.Menu, Screen.History("user123"))
+    )
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                items.forEach { item ->
+                    val isSelected = currScreen == item.screen
+
+                    NavigationBarItem(
+                        selected = isSelected,
+                        onClick = { currScreen = item.screen },
+                        label = { Text(item.title) },
+                        icon = {
+                            Icon(
+                                imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                                contentDescription = item.title
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            when (val screen = currScreen) {
+                is Screen.Home -> {
+                    HomeScreen(onFilePickRequested = {
+                        filePickerLauncher.launch(
+                            arrayOf(
+                                "application/pdf",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "text/plain"
+                            )
+                        )
+                    })
+                }
+                is Screen.History -> {
+                    Text(text = "Tutaj będzie historia użytkownika.")
+                }
+                is Screen.Summarization -> {
+                    SummaryScreen(
+                        fileName = screen.fileName,
+                        fileUri = screen.fileUri,
+                        viewModel = viewModel,
+                        context = context) {
+                        currScreen = Screen.Home
+                    }
+                }
+                is Screen.FileDetails -> {
+                    Text(text = "File details")
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -149,10 +238,15 @@ fun UploadZone(onUploadClick: () -> Unit) {
 }
 
 @Composable
-fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
+fun SummaryScreen(fileName: String,
+                  fileUri: Uri,
+                  viewModel: SummaryViewModel,
+                  context: Context,
+                  onBackClick: () -> Unit
+) {
+
     var selectedType by remember { mutableStateOf("Standard") }
     var instructionText by remember { mutableStateOf("") }
-
     val scrollState = rememberScrollState()
 
     Column(
@@ -172,7 +266,7 @@ fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
                 onClick = onBackClick,
                 modifier = Modifier.background(Color.White, CircleShape)
             ) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         }
 
@@ -223,15 +317,29 @@ fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Raport przedstawia wyniki finansowe firmy za rok 2023. Najważniejsze informacje:\n\n" +
-                            "• Przychody wzrosły o 18% w porównaniu do roku 2022.\n" +
-                            "• Zwiększyła się marża EBITDA, co wskazuje na poprawę rentowności operacyjnej.\n" +
-                            "• Głównym ryzykiem pozostaje inflacja oraz koszty logistyki.\n" +
-                            "• Firma planuje ekspansję na rynki europejskie w 2024 roku.",
+                    text = viewModel.summaryText.ifEmpty { "Click Generate Summary to start..." },
                     fontSize = 15.sp,
                     color = Color.DarkGray,
                     lineHeight = 22.sp
                 )
+
+                if (viewModel.isLoading) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "⏳ Generating...",
+                        color = MainPurple,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                if (viewModel.errorMessage != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Error: ${viewModel.errorMessage}",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -324,7 +432,20 @@ fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
         }
 
         Button(
-            onClick = { /* generowanie */ },
+            onClick = {
+                val file = uriToFile(context, fileUri, fileName)
+
+                if (file != null) {
+                    viewModel.summarizeUploadedFile(
+                        file,
+                        selectedType,
+                        instructionText.ifEmpty { "" }
+                    )
+                }
+                else {
+                    Toast.makeText(context, "Couldn't load your file", Toast.LENGTH_SHORT).show()
+                }
+                      },
             colors = ButtonDefaults.buttonColors(containerColor = MainPurple),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
