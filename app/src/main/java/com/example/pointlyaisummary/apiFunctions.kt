@@ -1,14 +1,11 @@
 package com.example.pointlyaisummary
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.http.Multipart
 import java.io.File
 
 
@@ -23,7 +20,7 @@ class SummaryRepository(
         }
     }
 
-    suspend fun searchFiles(query: String): List<Summary> {
+    suspend fun searchFile(query: String): List<Summary> {
         return withContext(Dispatchers.IO) {
             api.getSearchedFiles(userId, query)
         }
