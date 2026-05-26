@@ -1,5 +1,6 @@
 package com.example.pointlyaisummary
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,6 +55,7 @@ import com.example.pointlyaisummary.ui.theme.BackgroundGray
 import com.example.pointlyaisummary.ui.theme.LightPurpleBg
 import com.example.pointlyaisummary.ui.theme.MainPurple
 import com.example.pointlyaisummary.ui.theme.TextGray
+import java.io.File
 
 
 sealed class Screen {
@@ -149,10 +152,15 @@ fun UploadZone(onUploadClick: () -> Unit) {
 }
 
 @Composable
-fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
+fun SummaryScreen(fileName: String,
+                  fileUri: Uri,
+                  viewModel: SummaryViewModel,
+                  context: Context,
+                  onBackClick: () -> Unit
+) {
+
     var selectedType by remember { mutableStateOf("Standard") }
     var instructionText by remember { mutableStateOf("") }
-
     val scrollState = rememberScrollState()
 
     Column(
@@ -223,11 +231,7 @@ fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Raport przedstawia wyniki finansowe firmy za rok 2023. Najważniejsze informacje:\n\n" +
-                            "• Przychody wzrosły o 18% w porównaniu do roku 2022.\n" +
-                            "• Zwiększyła się marża EBITDA, co wskazuje na poprawę rentowności operacyjnej.\n" +
-                            "• Głównym ryzykiem pozostaje inflacja oraz koszty logistyki.\n" +
-                            "• Firma planuje ekspansję na rynki europejskie w 2024 roku.",
+                    text = viewModel.summaryText.ifEmpty { "Click Generate Summary to start..." },
                     fontSize = 15.sp,
                     color = Color.DarkGray,
                     lineHeight = 22.sp
@@ -324,7 +328,15 @@ fun SummaryScreen(fileName: String, onBackClick: () -> Unit) {
         }
 
         Button(
-            onClick = { /* generowanie */ },
+            onClick = {
+                val file = uriToFile(context, fileUri, fileName)
+
+                viewModel.summarizeUploadedFile(
+                    file,
+                    selectedType,
+                    instructionText.ifEmpty { "" }
+                )
+                      },
             colors = ButtonDefaults.buttonColors(containerColor = MainPurple),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
