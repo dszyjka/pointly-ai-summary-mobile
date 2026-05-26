@@ -43,14 +43,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            PointlyAISummaryTheme {
-                MainScreen()
-            }
-        }
 
         val uuidManager: UUIDManager = UUIDManager(this)
         val deviceUUID: String = uuidManager.getDeviceUUID()
+        val repo = SummaryRepository(deviceUUID)
+        val viewModel = SummaryViewModel(repo)
+
+        setContent {
+            PointlyAISummaryTheme {
+                MainScreen(deviceUUID, viewModel)
+            }
+        }
     }
 }
 
@@ -82,15 +85,15 @@ class UUIDManager(context: Context) {
 }
 
 @Composable
-fun MainScreen() {
-    val context: Context = LocalContext.current
+fun MainScreen(uuid: String, viewModel: SummaryViewModel) {
+    val context = LocalContext.current
     var currScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         if (uri != null) {
-            currScreen = Screen.Summarization(fileName = getFileName(context, uri), uri)
+            currScreen = Screen.Summarization(fileName = getFileName(context, uri), fileUri = uri)
         }
     }
 
@@ -142,7 +145,11 @@ fun MainScreen() {
                     Text(text = "Tutaj będzie historia użytkownika.")
                 }
                 is Screen.Summarization -> {
-                    SummaryScreen(fileName = screen.fileName) {
+                    SummaryScreen(
+                        fileName = screen.fileName,
+                        fileUri = screen.fileUri,
+                        viewModel = viewModel,
+                        context = context) {
                         currScreen = Screen.Home
                     }
                 }
@@ -182,4 +189,19 @@ fun getFileName(context: Context, uri: Uri) : String {
         }
     }
     return result ?: "Unknown file"
+}
+
+fun uriToFile(context: Context, uri: Uri, fileName: String): File? {
+    val file = File(context.cacheDir, fileName)
+    return try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            FileOutputStream(file).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+        file
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
