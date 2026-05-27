@@ -65,6 +65,18 @@ import com.example.pointlyaisummary.ui.theme.BackgroundGray
 import com.example.pointlyaisummary.ui.theme.LightPurpleBg
 import com.example.pointlyaisummary.ui.theme.MainPurple
 import com.example.pointlyaisummary.ui.theme.TextGray
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.style.TextOverflow
 
 
 sealed class Screen {
@@ -132,7 +144,7 @@ fun MainScreen(uuid: String, viewModel: SummaryViewModel) {
                     })
                 }
                 is Screen.History -> {
-                    Text(text = "Tutaj będzie historia użytkownika.")
+                    HistoryScreen(viewModel = viewModel)
                 }
                 is Screen.Summarization -> {
                     SummaryScreen(
@@ -441,11 +453,10 @@ fun SummaryScreen(fileName: String,
                         selectedType,
                         instructionText.ifEmpty { "" }
                     )
-                }
-                else {
+                } else {
                     Toast.makeText(context, "Couldn't load your file", Toast.LENGTH_SHORT).show()
                 }
-                      },
+            },
             colors = ButtonDefaults.buttonColors(containerColor = MainPurple),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
@@ -457,5 +468,168 @@ fun SummaryScreen(fileName: String,
 
         Spacer(modifier = Modifier.height(32.dp))
 
+    }
+}
+@Composable
+fun HistoryScreen(viewModel: SummaryViewModel) {
+    val context = LocalContext.current
+    var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadUserHistory()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundGray)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Previous summaries",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MainPurple
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { query ->
+                searchQuery = query
+                if (query.isEmpty()) viewModel.loadUserHistory()
+                else viewModel.searchUserFile(query)
+            },
+            placeholder = { Text("Search by name or date...", color = TextGray) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = "Search",
+                    tint = MainPurple
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White,
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = MainPurple
+            ),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (viewModel.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MainPurple)
+            }
+        } else if (viewModel.historyList.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = if (searchQuery.isEmpty()) "No summaries yet." else "No results found.",
+                    color = TextGray,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(viewModel.historyList) { summary ->
+                    SummaryHistoryItem(summary = summary, context = context)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SummaryHistoryItem(summary: Summary, context: Context) {
+    var expanded by remember { mutableStateOf(false) }
+    val formats = listOf("PDF", "DOCX", "TXT")
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(LightPurpleBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Description,
+                    contentDescription = null,
+                    tint = MainPurple,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = summary.fileName,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = summary.createdAt.toString(),
+                    fontSize = 12.sp,
+                    color = TextGray
+                )
+            }
+
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "Download options",
+                        tint = TextGray
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    formats.forEach { format ->
+                        DropdownMenuItem(
+                            text = { Text("Download as $format") },
+                            onClick = {
+                                expanded = false
+                                Toast.makeText(
+                                    context,
+                                    "Downloading as $format...",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Download,
+                                    contentDescription = null,
+                                    tint = MainPurple
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }
