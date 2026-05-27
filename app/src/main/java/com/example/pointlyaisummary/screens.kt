@@ -2,9 +2,11 @@ package com.example.pointlyaisummary
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -590,7 +592,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context) {
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = summary.createdAt.toString(),
+                    text = formatServerDate(summary.createdAt),
                     fontSize = 12.sp,
                     color = TextGray
                 )

@@ -11,10 +11,17 @@ import android.content.Context
 import android.provider.OpenableColumns
 import android.database.Cursor
 import android.content.SharedPreferences
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.util.UUID
 import java.io.File
 import java.io.FileOutputStream
 import androidx.core.content.edit
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.concurrent.ExecutionException
 
 
 class MainActivity : ComponentActivity() {
@@ -102,5 +109,20 @@ fun uriToFile(context: Context, uri: Uri, fileName: String): File? {
     } catch (e: Exception) {
         e.printStackTrace()
         null
+    }
+}
+
+fun formatServerDate(rawDate: String): String {
+    return try {
+        val cleanDate = rawDate.replace("T", " ").substringBefore(".")
+
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+
+        val date = inputFormat.parse(cleanDate)
+
+        if (date != null) outputFormat.format(date) else rawDate
+    } catch (e: ExecutionException) {
+        rawDate
     }
 }
