@@ -503,7 +503,7 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
                 if (query.isEmpty()) viewModel.loadUserHistory()
                 else viewModel.searchUserFile(query)
             },
-            placeholder = { Text("Search by name or date...", color = TextGray) },
+            placeholder = { Text("Search by name...", color = TextGray) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Filled.Search,

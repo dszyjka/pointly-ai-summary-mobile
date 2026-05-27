@@ -11,5 +11,5 @@ data class Summary (
     val fileName: String,
     val summary: String,
     @SerializedName("created_at")
-    val createdAt: DateFormat
+    val createdAt: String
 )

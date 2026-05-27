@@ -53,7 +53,7 @@ class SummaryViewModel(
             try {
                 historyList = repository.loadHistory()
             } catch (e: Exception) {
-                errorMessage = "Error during history loading"
+                errorMessage = e.localizedMessage ?: "Unknown error"
             }
         }
     }
@@ -63,7 +63,7 @@ class SummaryViewModel(
             try {
                 historyList = repository.searchFile(query)
             } catch (e: Exception) {
-                errorMessage = "Error during searching file"
+                errorMessage = e.localizedMessage ?: "Unknown error"
             }
         }
     }
