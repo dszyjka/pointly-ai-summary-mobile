@@ -2,11 +2,9 @@ package com.example.pointlyaisummary
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -69,12 +67,10 @@ import com.example.pointlyaisummary.ui.theme.MainPurple
 import com.example.pointlyaisummary.ui.theme.TextGray
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.LaunchedEffect
@@ -260,7 +256,7 @@ fun SummaryScreen(fileName: String,
 ) {
 
     var selectedType by remember { mutableStateOf("Standard") }
-    var instructionText by remember { mutableStateOf("") }
+    var instructionText by remember { mutableStateOf(" ") }
     val scrollState = rememberScrollState()
 
     Column(
@@ -340,7 +336,7 @@ fun SummaryScreen(fileName: String,
                 if (viewModel.isLoading) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "⏳ Generating...",
+                        text = "⏳ Analysing File...",
                         color = MainPurple,
                         fontWeight = FontWeight.Bold
                     )
@@ -453,7 +449,7 @@ fun SummaryScreen(fileName: String,
                     viewModel.summarizeUploadedFile(
                         file,
                         selectedType,
-                        instructionText.ifEmpty { "" }
+                        instructionText.ifEmpty { " " }
                     )
                 } else {
                     Toast.makeText(context, "Couldn't load your file", Toast.LENGTH_SHORT).show()
@@ -526,11 +522,7 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (viewModel.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MainPurple)
-            }
-        } else if (viewModel.historyList.isEmpty()) {
+        if (viewModel.historyList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     text = if (searchQuery.isEmpty()) "No summaries yet." else "No results found.",
