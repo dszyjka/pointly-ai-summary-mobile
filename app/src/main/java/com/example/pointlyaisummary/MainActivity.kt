@@ -11,15 +11,11 @@ import android.content.Context
 import android.provider.OpenableColumns
 import android.database.Cursor
 import android.content.SharedPreferences
-import android.os.Build
-import androidx.annotation.RequiresApi
 import java.util.UUID
 import java.io.File
 import java.io.FileOutputStream
 import androidx.core.content.edit
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.ExecutionException
 
@@ -36,7 +32,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PointlyAISummaryTheme {
-                MainScreen(deviceUUID, viewModel)
+                MainScreen(viewModel)
             }
         }
     }

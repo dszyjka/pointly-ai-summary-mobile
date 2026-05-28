@@ -85,7 +85,7 @@ sealed class Screen {
 }
 
 @Composable
-fun MainScreen(uuid: String, viewModel: SummaryViewModel) {
+fun MainScreen(viewModel: SummaryViewModel) {
     val context = LocalContext.current
     var currScreen by remember { mutableStateOf<Screen>(Screen.Home) }
 
@@ -148,7 +148,7 @@ fun MainScreen(uuid: String, viewModel: SummaryViewModel) {
                     SummaryScreen(
                         fileName = screen.fileName,
                         fileUri = screen.fileUri,
-                        viewModel = viewModel,
+                        viewModel = viewModel.also { it.clearSummaryText() },
                         context = context) {
                         currScreen = Screen.Home
                     }

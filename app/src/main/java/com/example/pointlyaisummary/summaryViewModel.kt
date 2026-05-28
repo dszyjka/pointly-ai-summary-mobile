@@ -67,4 +67,8 @@ class SummaryViewModel(
             }
         }
     }
+
+    fun clearSummaryText() {
+        this.summaryText = ""
+    }
 }
