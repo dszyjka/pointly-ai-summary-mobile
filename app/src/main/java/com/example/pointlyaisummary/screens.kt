@@ -75,6 +75,9 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextOverflow
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.os.Build
 
 
 sealed class Screen {
@@ -312,7 +315,7 @@ fun SummaryScreen(fileName: String,
                 ) {
                     Text("Your Summary ✨", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Button(
-                        onClick = { /* Kopiowanie */ },
+                        onClick = { copyToClipboard(context, viewModel.summaryText) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.White,
                             contentColor = MainPurple
@@ -627,5 +630,15 @@ fun SummaryHistoryItem(summary: Summary, context: Context) {
                 }
             }
         }
+    }
+}
+
+fun copyToClipboard(context: Context, textToCopy: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("Copied text", textToCopy)
+    clipboard.setPrimaryClip(clip)
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        Toast.makeText(context, "Copied text to clipboard", Toast.LENGTH_SHORT).show()
     }
 }
