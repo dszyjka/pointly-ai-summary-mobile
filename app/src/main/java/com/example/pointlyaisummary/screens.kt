@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.rounded.UploadFile
+import androidx.compose.material.icons.sharp.Description
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -78,6 +79,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.os.Build
+import androidx.compose.material.icons.rounded.Description
 
 
 sealed class Screen {
@@ -299,16 +301,21 @@ fun SummaryScreen(fileName: String,
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(70.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Red.copy(alpha = 0.1f)),
+                    .background(MainPurple.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("PDF", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Icon(
+                    imageVector = Icons.Rounded.Description,
+                    "File icon",
+                    modifier = Modifier.size(40.dp),
+                    tint = MainPurple
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(fileName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(fileName, fontWeight = FontWeight.Bold, fontSize = 25.sp)
             }
         }
 
