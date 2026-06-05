@@ -31,9 +31,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -101,7 +99,7 @@ fun MainScreen(viewModel: SummaryViewModel) {
 
     val items = listOf(
         NavigationItem("Home", Icons.Filled.Home, Icons.Outlined.Home, Screen.Home),
-        NavigationItem("History", Icons.Filled.Menu, Icons.Outlined.Menu, Screen.History("user123"))
+        NavigationItem("History", Icons.Filled.History, Icons.Outlined.History, Screen.History("user123"))
     )
 
     Scaffold(
