@@ -152,7 +152,16 @@ fun MainScreen(viewModel: SummaryViewModel) {
                         fileName = screen.fileName,
                         fileUri = screen.fileUri,
                         viewModel = viewModel.also { it.clearSummaryText() },
-                        context = context) {
+                        context = context,
+                        onFilePickRequested = {
+                            filePickerLauncher.launch(
+                                arrayOf(
+                                    "application/pdf",
+                                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    "text/plain"
+                                )
+                            )
+                        }) {
                         currScreen = Screen.Home
                     }
                 }
@@ -255,6 +264,7 @@ fun SummaryScreen(fileName: String,
                   fileUri: Uri,
                   viewModel: SummaryViewModel,
                   context: Context,
+                  onFilePickRequested: () -> Unit,
                   onBackClick: () -> Unit
 ) {
 
@@ -361,11 +371,11 @@ fun SummaryScreen(fileName: String,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { /* Jeszcze raz */ },
+                        onClick = onFilePickRequested,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MainPurple)
                     ) {
-                        Text("Generate Again", fontSize = 12.sp)
+                        Text("Change Your File", fontSize = 12.sp)
                     }
                 }
             }
@@ -473,6 +483,7 @@ fun SummaryScreen(fileName: String,
 
     }
 }
+
 @Composable
 fun HistoryScreen(viewModel: SummaryViewModel) {
     val context = LocalContext.current
