@@ -4,6 +4,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -31,4 +32,7 @@ interface ApiService {
         @Part("response_type") responseType: RequestBody,
         @Part("user_rules") userRules: RequestBody
     ): Response<ResponseBody>
+
+    @DELETE("api/delete_summary")
+    suspend fun deleteSummary(summaryId: Int)
 }

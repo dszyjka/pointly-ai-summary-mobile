@@ -76,4 +76,10 @@ class SummaryRepository(
             }
         }
     }
+
+    suspend fun deleteSummary(summaryId: Int) {
+        return withContext(Dispatchers.IO) {
+            api.deleteSummary(summaryId)
+        }
+    }
 }
