@@ -27,6 +27,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -379,13 +381,15 @@ fun SummaryScreen(fileName: String,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val types = listOf(
-                    "Standard",
+                    "Paragraph",
                     "TL;DR",
                     "Bullet Points",
-                    "Scientific",
-                    "Technical",
-                    "Business",
-                    "Academic"
+                    "Q&A",
+                    "Executive Summary",
+                    "Key Metrics",
+                    "Action Items",
+                    "Explanation",
+                    "Business Report"
                 )
 
                 items(types) { type ->
