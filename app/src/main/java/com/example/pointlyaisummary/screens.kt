@@ -29,9 +29,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.rounded.UploadFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -215,9 +215,9 @@ fun UploadZone(onUploadClick: () -> Unit) {
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Filled.AddCircle,
+                imageVector = Icons.Rounded.UploadFile,
                 "Add file",
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(96.dp),
                 tint = MainPurple
             )
 
