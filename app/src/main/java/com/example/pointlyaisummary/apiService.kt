@@ -34,5 +34,5 @@ interface ApiService {
     ): Response<ResponseBody>
 
     @DELETE("api/delete_summary")
-    suspend fun deleteSummary(summaryId: Int)
+    suspend fun deleteSummary(@Query("summary_id") summaryId: Int)
 }
