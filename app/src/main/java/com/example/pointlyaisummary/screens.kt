@@ -553,7 +553,7 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(viewModel.historyList) { summary ->
-                    SummaryHistoryItem(summary = summary, context = context)
+                    SummaryHistoryItem(summary = summary, context = context, viewModel)
                 }
             }
         }
@@ -561,7 +561,7 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
 }
 
 @Composable
-fun SummaryHistoryItem(summary: Summary, context: Context) {
+fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
@@ -618,7 +618,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context) {
                     )
                 }
 
-                IconButton(onClick = { /* delete */ }) {
+                IconButton(onClick = { viewModel.deleteUserSummary(summary.id) }) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = "Delete",
