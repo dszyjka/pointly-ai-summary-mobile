@@ -41,9 +41,19 @@ class SummaryViewModel(
                     onChunkReceived = {chunk -> summaryText += chunk}
                 )
             } catch (e: Exception) {
-                errorMessage = e.localizedMessage ?: "Unknown error"
+                errorMessage = e.localizedMessage ?: "Unknown error during summarize"
             } finally {
                 isLoading = false
+            }
+        }
+    }
+
+    fun deleteUserSummary(summaryId: Int) {
+        viewModelScope.launch {
+            try {
+                repository.deleteSummary(summaryId)
+            } catch (e: Exception) {
+                errorMessage = e.localizedMessage ?: "Unknown error during deletion"
             }
         }
     }
@@ -53,7 +63,7 @@ class SummaryViewModel(
             try {
                 historyList = repository.loadHistory()
             } catch (e: Exception) {
-                errorMessage = e.localizedMessage ?: "Unknown error"
+                errorMessage = e.localizedMessage ?: "Unknown error during history loading"
             }
         }
     }
@@ -63,7 +73,7 @@ class SummaryViewModel(
             try {
                 historyList = repository.searchFile(query)
             } catch (e: Exception) {
-                errorMessage = e.localizedMessage ?: "Unknown error"
+                errorMessage = e.localizedMessage ?: "Unknown error during searching"
             }
         }
     }

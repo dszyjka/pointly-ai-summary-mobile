@@ -562,9 +562,6 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
 
 @Composable
 fun SummaryHistoryItem(summary: Summary, context: Context) {
-    var expanded by remember { mutableStateOf(false) }
-    val formats = listOf("PDF", "DOCX", "TXT")
-
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
