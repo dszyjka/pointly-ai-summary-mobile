@@ -500,7 +500,7 @@ fun HistoryScreen(viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSum
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(viewModel.historyList) {
+    LaunchedEffect(Unit) {
         viewModel.loadUserHistory()
     }
 
