@@ -1,5 +1,7 @@
 package com.example.pointlyaisummary
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +13,8 @@ import android.content.Context
 import android.provider.OpenableColumns
 import android.database.Cursor
 import android.content.SharedPreferences
+import android.os.Build
+import android.widget.Toast
 import java.util.UUID
 import java.io.File
 import java.io.FileOutputStream
@@ -120,5 +124,24 @@ fun formatServerDate(rawDate: String): String {
         if (date != null) outputFormat.format(date) else rawDate
     } catch (e: ExecutionException) {
         rawDate
+    }
+}
+
+fun copyToClipboard(context: Context, textToCopy: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText("Copied text", textToCopy)
+    clipboard.setPrimaryClip(clip)
+
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        Toast.makeText(context, "Copied text to clipboard", Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun createCorrectFileName(currName: String): String {
+    return if (currName.endsWith(".pdf", ignoreCase = true)) {
+        currName
+    } else {
+        val baseName = currName.substringBeforeLast(".")
+        "${baseName}.pdf"
     }
 }

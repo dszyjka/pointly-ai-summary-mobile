@@ -73,10 +73,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextOverflow
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.graphics.pdf.PdfDocument
-import android.os.Build
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -87,9 +84,9 @@ import kotlin.io.use
 
 sealed class Screen {
     data object Home : Screen()
-    data class History(val userId: String) : Screen()
+    data object History : Screen()
     data class Summarization(val fileName: String, val fileUri: Uri)  : Screen()
-    data class FileDetails(val fileName : String) : Screen()
+    data class SummaryDetails(val clickedFile: Summary) : Screen()
 }
 
 @Composable
@@ -107,7 +104,7 @@ fun MainScreen(viewModel: SummaryViewModel) {
 
     val items = listOf(
         NavigationItem("Home", Icons.Filled.Home, Icons.Outlined.Home, Screen.Home),
-        NavigationItem("History", Icons.Filled.History, Icons.Outlined.History, Screen.History("user123"))
+        NavigationItem("History", Icons.Filled.History, Icons.Outlined.History, Screen.History)
     )
 
     Scaffold(
@@ -150,7 +147,8 @@ fun MainScreen(viewModel: SummaryViewModel) {
                     })
                 }
                 is Screen.History -> {
-                    HistoryScreen(viewModel = viewModel)
+                    HistoryScreen(viewModel = viewModel,
+                        onGoToSummaryDetails = { clickedSummary -> currScreen = Screen.SummaryDetails(clickedSummary)})
                 }
                 is Screen.Summarization -> {
                     SummaryScreen(
@@ -170,7 +168,7 @@ fun MainScreen(viewModel: SummaryViewModel) {
                         currScreen = Screen.Home
                     }
                 }
-                is Screen.FileDetails -> {
+                is Screen.SummaryDetails -> {
                     Text(text = "File details")
                 }
             }
@@ -495,7 +493,7 @@ fun SummaryScreen(fileName: String,
 }
 
 @Composable
-fun HistoryScreen(viewModel: SummaryViewModel) {
+fun HistoryScreen(viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSummary: Summary) -> Unit) {
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
 
@@ -559,7 +557,7 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(viewModel.historyList) { summary ->
-                    SummaryHistoryItem(summary = summary, context = context, viewModel)
+                    SummaryHistoryItem(summary = summary, context = context, viewModel, onGoToSummaryDetails = onGoToSummaryDetails)
                 }
             }
         }
@@ -567,7 +565,7 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
 }
 
 @Composable
-fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel) {
+fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSummary: Summary) -> Unit) {
     val createFileLauncher = rememberLauncherForActivityResult(
         contract = CreateDocument("application/pdf")
     ) { uri: Uri? ->
@@ -649,6 +647,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
     }
 
     Card(
+        { onGoToSummaryDetails(summary) },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -714,21 +713,3 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
     }
 }
 
-fun copyToClipboard(context: Context, textToCopy: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText("Copied text", textToCopy)
-    clipboard.setPrimaryClip(clip)
-
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        Toast.makeText(context, "Copied text to clipboard", Toast.LENGTH_SHORT).show()
-    }
-}
-
-fun createCorrectFileName(currName: String): String {
-    return if (currName.endsWith(".pdf", ignoreCase = true)) {
-        currName
-    } else {
-        var baseName = currName.substringBeforeLast(".")
-        "${baseName}.pdf"
-    }
-}
