@@ -75,8 +75,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextOverflow
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.graphics.pdf.PdfDocument
 import android.os.Build
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.compose.material.icons.rounded.Description
+import kotlin.io.use
 
 
 sealed class Screen {
@@ -562,6 +568,86 @@ fun HistoryScreen(viewModel: SummaryViewModel) {
 
 @Composable
 fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel) {
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = CreateDocument("application/pdf")
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    val pdfDocument = PdfDocument()
+
+                    val pageWidth = 595
+                    val pageHeight = 842
+                    val marginX = 40f
+                    val marginY = 50f
+
+                    val textWidth = (pageWidth - 2 * marginX).toInt()
+                    val availableHeight = (pageHeight - 2 * marginY).toInt()
+
+                    val textPaint = TextPaint().apply {
+                        color = Color.Black.hashCode()
+                        textSize = 14f
+                        isAntiAlias = true
+                    }
+
+                    val staticLayout = StaticLayout.Builder.obtain(
+                        summary.summary, 0, summary.summary.length, textPaint, textWidth
+                    )
+                        .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                        .setLineSpacing(0f, 1.2f)
+                        .build()
+
+                    var currLine = 0
+                    val totalLines  = staticLayout.lineCount
+                    var pageNum = 1
+
+                    while (currLine < totalLines) {
+                        val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNum).create()
+                        val page = pdfDocument.startPage(pageInfo)
+                        val canvas = page.canvas
+
+                        canvas.save()
+                        canvas.translate(marginX, marginY)
+
+                        val startY = staticLayout.getLineTop(currLine)
+                        var linesOnPage = 0
+
+                        while (currLine + linesOnPage < totalLines) {
+                            val nextLineBottom = staticLayout.getLineBottom(currLine + linesOnPage)
+
+                            if (nextLineBottom - startY > availableHeight) {
+                                break
+                            }
+
+                            linesOnPage++
+                        }
+
+                        if (linesOnPage == 0) linesOnPage = 1
+
+                        val endY = staticLayout.getLineBottom(currLine + linesOnPage - 1)
+
+                        canvas.clipRect(0, 0, textWidth, endY - startY)
+                        canvas.translate(0f, -startY.toFloat())
+
+                        staticLayout.draw((canvas))
+                        canvas.restore()
+
+                        pdfDocument.finishPage(page)
+
+                        currLine += linesOnPage
+                        pageNum++
+                    }
+
+                    pdfDocument.writeTo(outputStream)
+                    pdfDocument.close()
+
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
@@ -607,13 +693,11 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
                 )
             }
 
-            // code to change below
-
             Row {
-                IconButton(onClick = { /* download */ }) {
+                IconButton(onClick = { createFileLauncher.launch(summary.fileName) }) {
                     Icon(
                         imageVector = Icons.Filled.Download,
-                        contentDescription = "Download",
+                        contentDescription = "Save",
                         tint = TextGray
                     )
                 }
