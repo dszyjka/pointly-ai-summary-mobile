@@ -77,8 +77,10 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material3.AlertDialog
 import kotlin.io.use
 
 
@@ -566,6 +568,8 @@ fun HistoryScreen(viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSum
 
 @Composable
 fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSummary: Summary) -> Unit) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     val createFileLauncher = rememberLauncherForActivityResult(
         contract = CreateDocument("application/pdf")
     ) { uri: Uri? ->
@@ -701,7 +705,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
                     )
                 }
 
-                IconButton(onClick = { viewModel.deleteUserSummary(summary.id) }) {
+                IconButton(onClick = { showDeleteDialog = true }) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = "Delete",
@@ -709,6 +713,36 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
                     )
                 }
             }
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = {
+                    Text(text = "Delete Summary", fontWeight = FontWeight.Bold)
+                },
+                text = {
+                    Text(text = "Are you sure you want to delete the summary for \"${summary.fileName}\"? This action cannot be undone.")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteUserSummary(summary.id)
+                            showDeleteDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = {
+                        showDeleteDialog = false
+                    }) {
+                        Text("Cancel", color = TextGray)
+                    }
+                }
+            )
         }
     }
 }
