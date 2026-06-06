@@ -32,7 +32,7 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.rounded.UploadFile
-import androidx.compose.material.icons.sharp.Description
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -70,10 +70,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextOverflow
 import android.content.ClipData
@@ -613,38 +610,23 @@ fun SummaryHistoryItem(summary: Summary, context: Context) {
                 )
             }
 
-            Box {
-                IconButton(onClick = { expanded = true }) {
+            // code to change below
+
+            Row {
+                IconButton(onClick = { /* download */ }) {
                     Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = "Download options",
+                        imageVector = Icons.Filled.Download,
+                        contentDescription = "Download",
                         tint = TextGray
                     )
                 }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    formats.forEach { format ->
-                        DropdownMenuItem(
-                            text = { Text("Download as $format") },
-                            onClick = {
-                                expanded = false
-                                Toast.makeText(
-                                    context,
-                                    "Downloading as $format...",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Download,
-                                    contentDescription = null,
-                                    tint = MainPurple
-                                )
-                            }
-                        )
-                    }
+
+                IconButton(onClick = { /* delete */ }) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.Red
+                    )
                 }
             }
         }
