@@ -52,6 +52,7 @@ class SummaryViewModel(
         viewModelScope.launch {
             try {
                 repository.deleteSummary(summaryId)
+                historyList = repository.loadHistory()
             } catch (e: Exception) {
                 errorMessage = e.localizedMessage ?: "Unknown error during deletion"
             }

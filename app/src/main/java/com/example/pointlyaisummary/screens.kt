@@ -81,6 +81,7 @@ import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material3.AlertDialog
+import kotlinx.coroutines.withContext
 import kotlin.io.use
 
 
@@ -499,7 +500,7 @@ fun HistoryScreen(viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSum
     val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel.historyList) {
         viewModel.loadUserHistory()
     }
 
