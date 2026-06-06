@@ -694,7 +694,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
             }
 
             Row {
-                IconButton(onClick = { createFileLauncher.launch(summary.fileName) }) {
+                IconButton(onClick = { createFileLauncher.launch(createCorrectFileName(summary.fileName)) }) {
                     Icon(
                         imageVector = Icons.Filled.Download,
                         contentDescription = "Save",
@@ -721,5 +721,14 @@ fun copyToClipboard(context: Context, textToCopy: String) {
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
         Toast.makeText(context, "Copied text to clipboard", Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun createCorrectFileName(currName: String): String {
+    return if (currName.endsWith(".pdf", ignoreCase = true)) {
+        currName
+    } else {
+        var baseName = currName.substringBeforeLast(".")
+        "${baseName}.pdf"
     }
 }
