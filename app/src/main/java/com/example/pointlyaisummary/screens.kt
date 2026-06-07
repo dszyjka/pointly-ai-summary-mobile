@@ -526,7 +526,7 @@ fun HistoryScreen(viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSum
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(viewModel.historyList) { summary ->
-                    SummaryHistoryItem(summary = summary, context = context, viewModel, onGoToSummaryDetails = onGoToSummaryDetails)
+                    SummaryHistoryItem(summary = summary, context = context, viewModel = viewModel, searchQuery = searchQuery, onGoToSummaryDetails = onGoToSummaryDetails)
                 }
             }
         }
@@ -534,7 +534,7 @@ fun HistoryScreen(viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSum
 }
 
 @Composable
-fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel, onGoToSummaryDetails: (clickedSummary: Summary) -> Unit) {
+fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryViewModel, searchQuery: String, onGoToSummaryDetails: (clickedSummary: Summary) -> Unit) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val createFileLauncher = rememberLauncherForActivityResult(
@@ -691,7 +691,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
                 confirmButton = {
                     Button(
                         onClick = {
-                            viewModel.deleteUserSummary(summary.id)
+                            viewModel.deleteUserSummary(summary.id, searchQuery)
                             showDeleteDialog = false
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)

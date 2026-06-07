@@ -48,11 +48,15 @@ class SummaryViewModel(
         }
     }
 
-    fun deleteUserSummary(summaryId: Int) {
+    fun deleteUserSummary(summaryId: Int, searchQuery: String) {
         viewModelScope.launch {
             try {
                 repository.deleteSummary(summaryId)
-                historyList = repository.loadHistory()
+                if (searchQuery.isEmpty()) {
+                    historyList = repository.loadHistory()
+                } else {
+                    historyList = repository.searchFile(searchQuery)
+                }
             } catch (e: Exception) {
                 errorMessage = e.localizedMessage ?: "Unknown error during deletion"
             }
