@@ -77,12 +77,14 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
+import androidx.compose.foundation.ScrollState
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material3.AlertDialog
-import kotlinx.coroutines.withContext
+import androidx.compose.ui.graphics.vector.ImageVector
 import kotlin.io.use
+import kotlin.text.ifEmpty
+import dev.jeziellago.compose.markdowntext.MarkdownText
 
 
 sealed class Screen {
@@ -172,7 +174,7 @@ fun MainScreen(viewModel: SummaryViewModel) {
                     }
                 }
                 is Screen.SummaryDetails -> {
-                    Text(text = "File details")
+                    SummaryDetailsScreen(context, summary = screen.clickedFile, onBackClick = {currScreen = Screen.History})
                 }
             }
         }
@@ -274,7 +276,7 @@ fun SummaryScreen(fileName: String,
                   onBackClick: () -> Unit
 ) {
 
-    var selectedType by remember { mutableStateOf("Standard") }
+    var selectedType by remember { mutableStateOf("Paragraph") }
     var instructionText by remember { mutableStateOf(" ") }
     val scrollState = rememberScrollState()
 
@@ -286,42 +288,7 @@ fun SummaryScreen(fileName: String,
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier.background(Color.White, CircleShape)
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-            }
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MainPurple.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Description,
-                    "File icon",
-                    modifier = Modifier.size(40.dp),
-                    tint = MainPurple
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(fileName, fontWeight = FontWeight.Bold, fontSize = 25.sp)
-            }
-        }
+        ShowHeader(fileName, onBackClick)
 
         Card(
             colors = CardDefaults.cardColors(containerColor = LightPurpleBg),
@@ -350,15 +317,14 @@ fun SummaryScreen(fileName: String,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = viewModel.summaryText.ifEmpty { "Click Generate Summary to start..." },
-                    fontSize = 15.sp,
-                    color = Color.DarkGray,
-                    lineHeight = 22.sp
+                MarkdownText(
+                    markdown = viewModel.summaryText.ifEmpty {
+                        "Click Generate Summary to start..."
+                    }
                 )
 
                 if (viewModel.isLoading) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                     Text(
                         text = "⏳ Analysing File...",
                         color = MainPurple,
@@ -671,12 +637,7 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
                     .background(LightPurpleBg),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Description,
-                    contentDescription = null,
-                    tint = MainPurple,
-                    modifier = Modifier.size(24.dp)
-                )
+                ShowFileIcon(24, Icons.Filled.Description)
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -689,7 +650,9 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
                 Spacer(modifier = Modifier.height(2.dp))
+
                 Text(
                     text = formatServerDate(summary.createdAt),
                     fontSize = 12.sp,
@@ -748,3 +711,88 @@ fun SummaryHistoryItem(summary: Summary, context: Context, viewModel: SummaryVie
     }
 }
 
+@Composable
+fun SummaryDetailsScreen(context: Context, summary: Summary, onBackClick: () -> Unit) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundGray)
+            .verticalScroll(scrollState)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        ShowHeader(summary.fileName, onBackClick)
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = LightPurpleBg),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MarkdownText(markdown = summary.summary)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun RowBackArrow(onBackClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.background(Color.White, CircleShape)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+        }
+    }
+}
+
+@Composable
+fun ShowFileIcon(size: Int, icon: ImageVector) {
+    Icon(
+        imageVector = icon,
+        "File icon",
+        modifier = Modifier.size(size.dp),
+        tint = MainPurple
+    )
+}
+
+@Composable
+fun ShowHeader(fileName: String, onBackClick: () -> Unit) {
+    RowBackArrow(onBackClick)
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(70.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MainPurple.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            ShowFileIcon(40, Icons.Rounded.Description)
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column {
+            Text(fileName, fontWeight = FontWeight.Bold, fontSize = 25.sp)
+        }
+    }
+}
